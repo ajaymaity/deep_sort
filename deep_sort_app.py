@@ -1,9 +1,11 @@
 # python deep_sort_app.py \
-#     --sequence_dir=../track_players/output/sequence/yolov3_cln_60sec \
-#     --detection_file=../track_players/output/detections/yolov3_cln_60sec/smashpadelfuorigrotta_padel2_e8abfaa5c984_20220525220000_clipped_60sec.npy \
+#     --sequence_dir=/Users/ajaymaity/Documents/gits/track_players/output/sequences/60sec \
+#     --detection_file=/Users/ajaymaity/Documents/gits/deep_sort/output/detections/yolov3_cln_60sec/60sec.npy \
 #     --min_confidence=0.5 \
 #     --nn_budget=100 \
-#     --display=True
+#     --display=True \
+#     --target_video_file=output/oc_yolov3_cln__person_reid__deepsort_60sec_maxage60/output.mp4 \
+#     --max_age=60
 
 # vim: expandtab:ts=4:sw=4
 from __future__ import division, print_function, absolute_import
@@ -21,13 +23,6 @@ from application_util import visualization
 from deep_sort import nn_matching
 from deep_sort.detection import Detection
 from deep_sort.tracker import Tracker
-
-TARGET_VIDEO_PATH = 'output/oc_yolov3_cln_deepsort_60sec_maxage60/smashpadelfuorigrotta_padel2_e8abfaa5c984_20220525220000_clipped_60sec.mp4'
-if Path(TARGET_VIDEO_PATH).exists():
-    raise Exception(f'Target Video Path \'{TARGET_VIDEO_PATH}\' already exists!')
-Path(TARGET_VIDEO_PATH).parent.mkdir(exist_ok=True, parents=True)
-MAX_AGE = 60  # default 30
-
 
 
 def gather_sequence_info(sequence_dir, detection_file):
@@ -147,7 +142,7 @@ def create_detections(detection_mat, frame_idx, min_height=0):
 
 def run(sequence_dir, detection_file, output_file, min_confidence,
         nms_max_overlap, min_detection_height, max_cosine_distance,
-        nn_budget, display):
+        nn_budget, display, target_video_file, max_age=30):
     """Run multi-target tracker on a particular sequence.
 
     Parameters
@@ -174,12 +169,20 @@ def run(sequence_dir, detection_file, output_file, min_confidence,
         is enforced.
     display : bool
         If True, show visualization of intermediate tracking results.
+    target_video_file: str
+        Path of video file created to store tracker output
+    max_age: int
+        Max age of DeepSort tracker
 
     """
+    if Path(target_video_file).exists():
+        raise Exception(f'Target Video Path \'{target_video_file}\' already exists!')
+    Path(target_video_file).parent.mkdir(exist_ok=True, parents=True)
+    
     seq_info = gather_sequence_info(sequence_dir, detection_file)
     metric = nn_matching.NearestNeighborDistanceMetric(
         "cosine", max_cosine_distance, nn_budget)
-    tracker = Tracker(metric, max_age=MAX_AGE)
+    tracker = Tracker(metric, max_age=max_age)
     results = []
     
     # Create a video writer
@@ -188,7 +191,7 @@ def run(sequence_dir, detection_file, output_file, min_confidence,
         seq_info["image_filenames"][image_key], cv2.IMREAD_COLOR)
     (H, W) = image.shape[:2]
     fps = int(seq_info['fps'])
-    writer = cv2.VideoWriter(TARGET_VIDEO_PATH, cv2.VideoWriter_fourcc(*'mp4v'), 
+    writer = cv2.VideoWriter(target_video_file, cv2.VideoWriter_fourcc(*'mp4v'), 
                              fps, (W, H))
 
     def frame_callback(vis, frame_idx):
@@ -281,6 +284,11 @@ def parse_args():
     parser.add_argument(
         "--display", help="Show intermediate tracking results",
         default=True, type=bool_string)
+    parser.add_argument(
+        '--target_video_file', help='Path of video file created to store tracker output',
+        type=str, required=True)
+    parser.add_argument(
+        '--max_age', help='Max age of deepsort tracker', type=int, default=30)
     return parser.parse_args()
 
 
@@ -290,6 +298,7 @@ if __name__ == "__main__":
     run(
         args.sequence_dir, args.detection_file, args.output_file,
         args.min_confidence, args.nms_max_overlap, args.min_detection_height,
-        args.max_cosine_distance, args.nn_budget, args.display)
+        args.max_cosine_distance, args.nn_budget, args.display, 
+        args.target_video_file, args.max_age)
     END = time.time()
-    print(f'Total time: {END - START}')
+    print(f'Took {(END - START):.2f} seconds.')
