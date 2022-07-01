@@ -1,3 +1,9 @@
+# pip install protobuf==3.20.*
+# python tools/generate_detections.py \
+#     --model=resources/networks/mars-small128.pb \
+#     --mot_dir=./MOT16/train \
+#     --output_dir=./resources/detections/MOT16_train_rerun
+
 # vim: expandtab:ts=4:sw=4
 import os
 import errno

@@ -1,8 +1,17 @@
+# python deep_sort_app.py \
+#     --sequence_dir=../track_players/output/sequence/yolov3_cln_60sec \
+#     --detection_file=../track_players/output/detections/yolov3_cln_60sec/smashpadelfuorigrotta_padel2_e8abfaa5c984_20220525220000_clipped_60sec.npy \
+#     --min_confidence=0.5 \
+#     --nn_budget=100 \
+#     --display=True
+
 # vim: expandtab:ts=4:sw=4
 from __future__ import division, print_function, absolute_import
 
 import argparse
 import os
+import time
+from pathlib import Path
 
 import cv2
 import numpy as np
@@ -12,6 +21,13 @@ from application_util import visualization
 from deep_sort import nn_matching
 from deep_sort.detection import Detection
 from deep_sort.tracker import Tracker
+
+TARGET_VIDEO_PATH = 'output/oc_yolov3_cln_deepsort_60sec_maxage60/smashpadelfuorigrotta_padel2_e8abfaa5c984_20220525220000_clipped_60sec.mp4'
+if Path(TARGET_VIDEO_PATH).exists():
+    raise Exception(f'Target Video Path \'{TARGET_VIDEO_PATH}\' already exists!')
+Path(TARGET_VIDEO_PATH).parent.mkdir(exist_ok=True, parents=True)
+MAX_AGE = 60  # default 30
+
 
 
 def gather_sequence_info(sequence_dir, detection_file):
@@ -74,8 +90,10 @@ def gather_sequence_info(sequence_dir, detection_file):
             info_dict = dict(
                 s for s in line_splits if isinstance(s, list) and len(s) == 2)
 
+        fps = info_dict['frameRate']
         update_ms = 1000 / int(info_dict["frameRate"])
     else:
+        fps = None
         update_ms = None
 
     feature_dim = detections.shape[1] - 10 if detections is not None else 0
@@ -88,7 +106,8 @@ def gather_sequence_info(sequence_dir, detection_file):
         "min_frame_idx": min_frame_idx,
         "max_frame_idx": max_frame_idx,
         "feature_dim": feature_dim,
-        "update_ms": update_ms
+        "update_ms": update_ms,
+        'fps': fps
     }
     return seq_info
 
@@ -160,8 +179,17 @@ def run(sequence_dir, detection_file, output_file, min_confidence,
     seq_info = gather_sequence_info(sequence_dir, detection_file)
     metric = nn_matching.NearestNeighborDistanceMetric(
         "cosine", max_cosine_distance, nn_budget)
-    tracker = Tracker(metric)
+    tracker = Tracker(metric, max_age=MAX_AGE)
     results = []
+    
+    # Create a video writer
+    image_key = list(seq_info["image_filenames"].keys())[0]
+    image = cv2.imread(
+        seq_info["image_filenames"][image_key], cv2.IMREAD_COLOR)
+    (H, W) = image.shape[:2]
+    fps = int(seq_info['fps'])
+    writer = cv2.VideoWriter(TARGET_VIDEO_PATH, cv2.VideoWriter_fourcc(*'mp4v'), 
+                             fps, (W, H))
 
     def frame_callback(vis, frame_idx):
         print("Processing frame %05d" % frame_idx)
@@ -189,6 +217,7 @@ def run(sequence_dir, detection_file, output_file, min_confidence,
             vis.set_image(image.copy())
             vis.draw_detections(detections)
             vis.draw_trackers(tracker.tracks)
+            writer.write(vis.viewer.image)
 
         # Store results.
         for track in tracker.tracks:
@@ -256,8 +285,11 @@ def parse_args():
 
 
 if __name__ == "__main__":
+    START = time.time()
     args = parse_args()
     run(
         args.sequence_dir, args.detection_file, args.output_file,
         args.min_confidence, args.nms_max_overlap, args.min_detection_height,
         args.max_cosine_distance, args.nn_budget, args.display)
+    END = time.time()
+    print(f'Total time: {END - START}')
