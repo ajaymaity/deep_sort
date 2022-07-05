@@ -4,7 +4,7 @@
 #     --min_confidence=0.5 \
 #     --nn_budget=100 \
 #     --display=True \
-#     --target_video_file=output/oc_yolov3_cln__person_reid__deepsort_60sec_maxage60/output.mp4 \
+#     --target_video_file=output/oc_yolov3_cln__person_reid__deepsort_maxage60/60sec.mp4 \
 #     --max_age=60
 
 # vim: expandtab:ts=4:sw=4
