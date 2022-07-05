@@ -1,6 +1,6 @@
 # python deep_sort_app.py \
 #     --sequence_dir=/Users/ajaymaity/Documents/gits/track_players/output/sequences/60sec \
-#     --detection_file=/Users/ajaymaity/Documents/gits/deep_sort/output/detections/yolov3_cln_60sec/60sec.npy \
+#     --detection_file=/Users/ajaymaity/Documents/gits/deep_sort/output/detections/yolov3_cln/60sec.npy \
 #     --min_confidence=0.5 \
 #     --nn_budget=100 \
 #     --display=True \
