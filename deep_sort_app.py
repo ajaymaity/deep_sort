@@ -1,11 +1,12 @@
 # python deep_sort_app.py \
 #     --sequence_dir=/Users/ajaymaity/Documents/gits/track_players/output/sequences/60sec \
-#     --detection_file=/Users/ajaymaity/Documents/gits/deep_sort/output/detections/yolov3_cln/60sec.npy \
-#     --min_confidence=0.5 \
+#     --detection_file=/Users/ajaymaity/Documents/gits/track_players/output/yolov5x_pt_ut_conf0.5_iou0.8/smashpadelfuorigrotta_padel2_e8abfaa5c984_20220525220000_clipped_60sec.det.feat.npy \
+#     --min_confidence=0.25 \
 #     --nn_budget=100 \
 #     --display=True \
-#     --target_video_file=output/oc_yolov3_cln__person_reid__deepsort_maxage60/60sec.mp4 \
-#     --max_age=60
+#     --target_video_file=output/yolov5x_pt_ut_conf0.5_iou0.8__same__deepsort_maxage60_ninit10/60sec.mp4 \
+#     --max_age=60 \
+#     --n_init=10 
 
 # vim: expandtab:ts=4:sw=4
 from __future__ import division, print_function, absolute_import
@@ -129,6 +130,8 @@ def create_detections(detection_mat, frame_idx, min_height=0):
 
     """
     frame_indices = detection_mat[:, 0].astype(np.int)
+    # print(frame_indices)
+    # print(frame_idx)
     mask = frame_indices == frame_idx
 
     detection_list = []
@@ -142,7 +145,7 @@ def create_detections(detection_mat, frame_idx, min_height=0):
 
 def run(sequence_dir, detection_file, output_file, min_confidence,
         nms_max_overlap, min_detection_height, max_cosine_distance,
-        nn_budget, display, target_video_file, max_age=30):
+        nn_budget, display, target_video_file, max_age=30, n_init=3):
     """Run multi-target tracker on a particular sequence.
 
     Parameters
@@ -173,6 +176,8 @@ def run(sequence_dir, detection_file, output_file, min_confidence,
         Path of video file created to store tracker output
     max_age: int
         Max age of DeepSort tracker
+    n_init: int
+        No. of initializations of DeepSort tracker
 
     """
     if Path(target_video_file).exists():
@@ -182,7 +187,7 @@ def run(sequence_dir, detection_file, output_file, min_confidence,
     seq_info = gather_sequence_info(sequence_dir, detection_file)
     metric = nn_matching.NearestNeighborDistanceMetric(
         "cosine", max_cosine_distance, nn_budget)
-    tracker = Tracker(metric, max_age=max_age)
+    tracker = Tracker(metric, max_age=max_age, n_init=n_init)
     results = []
     
     # Create a video writer
@@ -200,6 +205,7 @@ def run(sequence_dir, detection_file, output_file, min_confidence,
         # Load image and generate detections.
         detections = create_detections(
             seq_info["detections"], frame_idx, min_detection_height)
+        # print(len(detections))
         detections = [d for d in detections if d.confidence >= min_confidence]
 
         # Run non-maxima suppression.
@@ -289,6 +295,8 @@ def parse_args():
         type=str, required=True)
     parser.add_argument(
         '--max_age', help='Max age of deepsort tracker', type=int, default=30)
+    parser.add_argument(
+        '--n_init', help='No. of initializations of deepsort tracker', type=int, default=3)
     return parser.parse_args()
 
 
@@ -299,6 +307,6 @@ if __name__ == "__main__":
         args.sequence_dir, args.detection_file, args.output_file,
         args.min_confidence, args.nms_max_overlap, args.min_detection_height,
         args.max_cosine_distance, args.nn_budget, args.display, 
-        args.target_video_file, args.max_age)
+        args.target_video_file, args.max_age, args.n_init)
     END = time.time()
     print(f'Took {(END - START):.2f} seconds.')

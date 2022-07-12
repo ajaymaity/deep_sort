@@ -2,9 +2,9 @@
 # pip install protobuf==3.20.*
 # python tools/generate_detection.py \
 #     --model=resources/networks/mars-small128.pb \
-#     --sequence_dir=/Users/ajaymaity/Documents/gits/track_players/output/sequences/60sec \
-#     --detection_file=/Users/ajaymaity/Documents/gits/track_players/output/detections/yolov3_cln_60sec/smashpadelfuorigrotta_padel2_e8abfaa5c984_20220525220000_clipped_60sec.txt \
-#     --output_dir=/Users/ajaymaity/Documents/gits/deep_sort/output/detections/yolov3_cln_60sec
+#     --sequence_dir=/Users/ajaymaity/Documents/gits/track_players/output/sequences/10sec \
+#     --detection_file=/Users/ajaymaity/Documents/gits/track_players/output/yolov5_pt_ut/smashpadelfuorigrotta_padel2_e8abfaa5c984_20220525220000_clipped_10sec.det.txt \
+#     --output_dir=/Users/ajaymaity/Documents/gits/deep_sort/output/detections/yolov5_pt_ut
 
 # vim: expandtab:ts=4:sw=4
 import os
