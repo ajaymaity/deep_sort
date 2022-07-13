@@ -38,7 +38,7 @@ class KalmanFilter(object):
     """
 
     def __init__(self):
-        ndim, dt = 4, 1.
+        ndim, dt = 2, 1.  # AJM changed ndim value from 4 to 2
 
         # Create Kalman filter model matrices.
         self._motion_mat = np.eye(2 * ndim, 2 * ndim)
@@ -51,6 +51,9 @@ class KalmanFilter(object):
         # the model. This is a bit hacky.
         self._std_weight_position = 1. / 20
         self._std_weight_velocity = 1. / 160
+        
+        # AJM
+        self.a, self.h = None, None
 
     def initiate(self, measurement):
         """Create track from unassociated measurement.
@@ -70,20 +73,23 @@ class KalmanFilter(object):
 
         """
         mean_pos = measurement
+        mean_pos = measurement[:-2]  # AJM
+        self.a, self.h = measurement[2:]  # AJM
         mean_vel = np.zeros_like(mean_pos)
         mean = np.r_[mean_pos, mean_vel]
 
         std = [
-            2 * self._std_weight_position * measurement[3],
-            2 * self._std_weight_position * measurement[3],
-            1e-2,
-            2 * self._std_weight_position * measurement[3],
-            10 * self._std_weight_velocity * measurement[3],
-            10 * self._std_weight_velocity * measurement[3],
-            1e-5,
-            10 * self._std_weight_velocity * measurement[3]]
+            2 * self._std_weight_position * self.h,  # AJM changed measurement[3] to self.h
+            2 * self._std_weight_position * self.h,  # AJM changed measurement[3] to self.h
+            # 1e-2,  # AJM commented this
+            # 2 * self._std_weight_position * measurement[3],  # AJM commented this
+            10 * self._std_weight_velocity * self.h,  # AJM changed measurement[3] to self.h
+            10 * self._std_weight_velocity * self.h,  # AJM changed measurement[3] to self.h
+            # 1e-5,  # AJM commented this
+            # 10 * self._std_weight_velocity * measurement[3]  # AJM commented this
+        ]
         covariance = np.diag(np.square(std))
-        return mean, covariance
+        return mean, covariance, self.a, self.h  # AJM added self.a, self.h
 
     def predict(self, mean, covariance):
         """Run Kalman filter prediction step.
@@ -105,15 +111,17 @@ class KalmanFilter(object):
 
         """
         std_pos = [
-            self._std_weight_position * mean[3],
-            self._std_weight_position * mean[3],
-            1e-2,
-            self._std_weight_position * mean[3]]
+            self._std_weight_position * self.h,  # AJM changed mean[3] to self.h
+            self._std_weight_position * self.h,  # AJM changed mean[3] to self.h
+            # 1e-2,  # AJM commented this
+            # self._std_weight_position * mean[3]  # AJM commented this
+        ]
         std_vel = [
-            self._std_weight_velocity * mean[3],
-            self._std_weight_velocity * mean[3],
-            1e-5,
-            self._std_weight_velocity * mean[3]]
+            self._std_weight_velocity * self.h,  # AJM changed mean[3] to self.h
+            self._std_weight_velocity * self.h,  # AJM changed mean[3] to self.h
+            # 1e-5,  # AJM commented this
+            # self._std_weight_velocity * mean[3]  # AJM commented this
+        ]
         motion_cov = np.diag(np.square(np.r_[std_pos, std_vel]))
 
         mean = np.dot(self._motion_mat, mean)
@@ -140,10 +148,11 @@ class KalmanFilter(object):
 
         """
         std = [
-            self._std_weight_position * mean[3],
-            self._std_weight_position * mean[3],
-            1e-1,
-            self._std_weight_position * mean[3]]
+            self._std_weight_position * self.h,  # AJM changed mean[3] to self.h
+            self._std_weight_position * self.h,  # AJM changed mean[3] to self.h
+            # 1e-1,  # AJM commented this
+            # self._std_weight_position * mean[3]  # AJM commented this
+        ]
         innovation_cov = np.diag(np.square(std))
 
         mean = np.dot(self._update_mat, mean)
@@ -171,6 +180,8 @@ class KalmanFilter(object):
             Returns the measurement-corrected state distribution.
 
         """
+        self.a, self.h = measurement[2:]  # AJM
+        measurement = measurement[:-2]  # AJM
         projected_mean, projected_cov = self.project(mean, covariance)
 
         chol_factor, lower = scipy.linalg.cho_factor(
@@ -183,7 +194,7 @@ class KalmanFilter(object):
         new_mean = mean + np.dot(innovation, kalman_gain.T)
         new_covariance = covariance - np.linalg.multi_dot((
             kalman_gain, projected_cov, kalman_gain.T))
-        return new_mean, new_covariance
+        return new_mean, new_covariance, self.a, self.h  # AJM added self.a, self.h
 
     def gating_distance(self, mean, covariance, measurements,
                         only_position=False):
@@ -215,6 +226,7 @@ class KalmanFilter(object):
             `measurements[i]`.
 
         """
+        measurements = measurements[:, :2]  # AJM
         mean, covariance = self.project(mean, covariance)
         if only_position:
             mean, covariance = mean[:2], covariance[:2, :2]

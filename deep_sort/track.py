@@ -1,4 +1,5 @@
 # vim: expandtab:ts=4:sw=4
+import numpy as np  # AJM
 
 
 class TrackState:
@@ -63,10 +64,12 @@ class Track:
 
     """
 
-    def __init__(self, mean, covariance, track_id, n_init, max_age,
+    def __init__(self, mean, covariance, a, h, track_id, n_init, max_age,  # AJM added a and h parameters
                  feature=None):
         self.mean = mean
         self.covariance = covariance
+        self.a = a  # AJM
+        self.h = h  # AJM
         self.track_id = track_id
         self.hits = 1
         self.age = 1
@@ -90,8 +93,15 @@ class Track:
             The bounding box.
 
         """
-        ret = self.mean[:4].copy()
-        ret[2] *= ret[3]
+        # AJM commented this
+        # ret = self.mean[:4].copy()
+        # ret[2] *= ret[3]
+        # ret[:2] -= ret[2:] / 2
+        
+        # AJM
+        ret = self.mean[:2].copy()
+        ret = np.append(ret, self.a * self.h)
+        ret = np.append(ret, self.h)
         ret[:2] -= ret[2:] / 2
         return ret
 
@@ -135,7 +145,7 @@ class Track:
             The associated detection.
 
         """
-        self.mean, self.covariance = kf.update(
+        self.mean, self.covariance, self.a, self.h = kf.update(  # AJM added self.a, self.h
             self.mean, self.covariance, detection.to_xyah())
         self.features.append(detection.feature)
 

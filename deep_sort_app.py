@@ -1,10 +1,10 @@
 # python deep_sort_app.py \
 #     --sequence_dir=/Users/ajaymaity/Documents/gits/track_players/output/sequences/60sec \
-#     --detection_file=/Users/ajaymaity/Documents/gits/track_players/output/yolov5x_pt_ut_conf0.5_iou0.8/smashpadelfuorigrotta_padel2_e8abfaa5c984_20220525220000_clipped_60sec.det.feat.npy \
+#     --detection_file=/Users/ajaymaity/Documents/gits/track_players/output/yolov5x_pt_ut_conf0.5_iou0.95/smashpadelfuorigrotta_padel2_e8abfaa5c984_20220525220000_clipped_60sec.det.feat.npy \
 #     --min_confidence=0.25 \
 #     --nn_budget=100 \
 #     --display=True \
-#     --target_video_file=output/yolov5x_pt_ut_conf0.5_iou0.8__same__deepsort_maxage60_ninit10/60sec.mp4 \
+#     --target_video_file=output/yolov5x_pt_ut_conf0.5_iou0.95__same__deepsort_maxage60_ninit10_noanh/60sec.mp4 \
 #     --max_age=60 \
 #     --n_init=10 
 
@@ -224,7 +224,7 @@ def run(sequence_dir, detection_file, output_file, min_confidence,
             image = cv2.imread(
                 seq_info["image_filenames"][frame_idx], cv2.IMREAD_COLOR)
             vis.set_image(image.copy())
-            vis.draw_detections(detections)
+            vis.draw_detections(detections)            
             vis.draw_trackers(tracker.tracks)
             writer.write(vis.viewer.image)
 

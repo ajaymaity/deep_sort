@@ -131,8 +131,8 @@ class Tracker:
         return matches, unmatched_tracks, unmatched_detections
 
     def _initiate_track(self, detection):
-        mean, covariance = self.kf.initiate(detection.to_xyah())
+        mean, covariance, a, h = self.kf.initiate(detection.to_xyah())  # AJM added a and h
         self.tracks.append(Track(
-            mean, covariance, self._next_id, self.n_init, self.max_age,
+            mean, covariance, a, h, self._next_id, self.n_init, self.max_age,
             detection.feature))
         self._next_id += 1
