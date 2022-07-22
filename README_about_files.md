@@ -3,4 +3,4 @@
 2. `MOT16` folder containing video sequences downloadable from [here](https://motchallenge.net/data/MOT16/).
 
 ##### Find files that are greater than 95 MB
-`find /Users/ajaymaity/Documents/gits/deep_sort/MOT16 -type f -size +95000k -exec ls -lh {} \; | awk '{ print $9 ": " $5 }'`
+`find /Users/ajaymaity/Documents/gits/deep_sort/ -type f -size +95000k -exec ls -lh {} \; | awk '{ print $9 ": " $5 }'`

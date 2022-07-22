@@ -1,11 +1,11 @@
 # python deep_sort_app.py \
-#     --sequence_dir=/Users/ajaymaity/Documents/gits/track_players/output/sequences/60sec \
-#     --detection_file=/Users/ajaymaity/Documents/gits/track_players/output/yolov5x_pt_ut_conf0.5_iou0.8__tf_densenet201/smashpadelfuorigrotta_padel2_e8abfaa5c984_20220525220000_clipped_60sec.det.feat.npy \
+#     --sequence_dir=/Users/ajaymaity/Documents/gits/track_players/output/sequences/Tennis_clip \
+#     --detection_file=/Users/ajaymaity/Documents/gits/track_players/output/yolov5x_pt_ut_conf0.5_iou0.8__tf_xception/Tennis_clip.det.feat.npy \
 #     --min_confidence=0.25 \
 #     --nn_budget=100 \
-#     --max_cosine_distance=5 \
+#     --max_cosine_distance=0.5 \
 #     --display=True \
-#     --target_video_file=output/yolov5x_pt_ut_conf0.5_iou0.8__tf_densenet201__deepsort_maxage60_ninit10_maxcos5_noanh/60sec.mp4 \
+#     --target_video_file=output/yolov5x_pt_ut_conf0.5_iou0.8__tf_xception__deepsort_maxage60_ninit10_maxcos0.5_noanh/Tennis_clip.mp4 \
 #     --max_age=60 \
 #     --n_init=10 
 
